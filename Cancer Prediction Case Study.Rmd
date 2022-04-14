@@ -1,0 +1,67 @@
+---
+title: "Cancer Prediction Case Study"
+author: "Mia Brito"
+date: "4/14/2022"
+output:
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Executive Summary
+
+## The Probelm
+For this case, we must find the best model for predicting the 
+## Related Literature
+
+## Methodology
+
+## Data Analysis
+
+\newpage
+
+##Appendix
+
+id: Patient ID number
+diagnosis: Diagnosis (M = malignant, B = benign)
+3-32 Ten real-valued features are computed for each cell nucleus:
+a) radius (mean of distances from center to points on the
+perimeter)
+b) texture (standard deviation of gray-scale values)
+c) perimeter
+d) area
+e) smoothness (local variation in radius lengths)
+f) compactness (perimeter^2 / area - 1.0)
+g) concavity (severity of concave portions of the contour)
+h) concave points (number of concave portions of the contour)
+i) symmetry
+j) fractal dimension ("coastline approximation" - 1)
+
+## Loading In Libraries
+
+```{r library,message=FALSE,echo = TRUE}
+library(tidyverse)
+library(readr)
+library(readxl)
+library(caret)
+library(caTools)
+source('/Users/admin/Desktop/optim_threshold.R')
+```
+
+## Reading in Data
+
+```{r}
+b1 <- read.csv("/Users/admin/Desktop/CancerData.csv", sep = ",")
+```
+
+## Splitting data into Training and Testing
+```{r}
+split = sample.split(b1$diagnosis, SplitRatio = 0.8)
+b1train = subset(b1, split == TRUE)
+b1test = subset(b1, split == FALSE)
+```
+
+
+```{r}
