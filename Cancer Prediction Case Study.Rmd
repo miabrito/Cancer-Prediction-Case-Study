@@ -56,6 +56,21 @@ source('/Users/admin/Desktop/optim_threshold.R')
 b1 <- read.csv("/Users/admin/Desktop/CancerData.csv", sep = ",")
 ```
 
+## Make Factor variables
+
+```{r}
+b1$diagnosis = as.factor(b1$diagnosis)
+str(b1)
+```
+
+## Removing Highly Correlated Values
+```{r}
+b1_num = dplyr::select_if(b1, is.numeric)
+M = cor(b1_num)
+highcorr = findCorrelation(M, cutoff = .9, names = TRUE)
+b1 = dplyr::select(b1, - highcorr)
+```
+
 ## Splitting data into Training and Testing
 ```{r}
 split = sample.split(b1$diagnosis, SplitRatio = 0.8)
