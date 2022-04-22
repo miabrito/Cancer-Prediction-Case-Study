@@ -6,9 +6,7 @@ output:
   pdf_document: default
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ## Executive Summary
 
@@ -47,6 +45,8 @@ library(readr)
 library(readxl)
 library(caret)
 library(caTools)
+library(ROCR)
+library(corrplot)
 source('/Users/admin/Desktop/optim_threshold.R')
 ```
 
@@ -73,10 +73,87 @@ b1 = dplyr::select(b1, - highcorr)
 
 ## Splitting data into Training and Testing
 ```{r}
-split = sample.split(b1$diagnosis, SplitRatio = 0.8)
-b1train = subset(b1, split == TRUE)
-b1test = subset(b1, split == FALSE)
+set.seed(1)
+tr_ind = sample(nrow(b1),.8*nrow(b1), replace = F)
+b1train = b1[tr_ind,]
+b1test = b1[-tr_ind,]
+```
+
+### Check correlation in variables
+
+```{r}
+b1_num = dplyr::select_if(b1, is.numeric)
+M = cor(b1_num)
+corrplot(M, method = "circle")
+b1 = dplyr::select(b1, - concave.points_worst)
+```
+
+##Plots
+
+```{r}
+ggplot(b1, aes(x = area_mean, fill = diagnosis)) +
+  geom_histogram(position = "identity", alpha = 0.4)
+
+ggplot(b1, aes(x = radius_se, fill = diagnosis)) +
+  geom_histogram(position = "identity", alpha = 0.4)
+
+ggplot(b1, aes(x = texture_worst, fill = diagnosis)) +
+  geom_histogram(position = "identity", alpha = 0.4)
+
+ggplot(b1) +
+  aes(x = diagnosis, fill = diagnosis, colour = diagnosis) +
+  geom_bar() +
+  scale_fill_viridis_d(option = "cividis", direction = 1) +
+  scale_color_viridis_d(option = "cividis", direction = 1) +
+  labs(
+    x = "Diagnosis (B or M)",
+    y = "Count",
+    title = "Cancer Diagnosis"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 20L,
+    hjust = 0.5),
+    axis.title.y = element_text(size = 13L),
+    axis.title.x = element_text(size = 13L)
+  )
+
+
+```
+
+
+
+```{r}
+colSums(is.na(b1))
 ```
 
 
 ```{r}
+a1 = glm(formula = diagnosis ~ ., data = b1 , family = binomial)
+
+
+car::vif(a1)
+summary(a1)
+
+predprob = predict.glm(a1, newdata = b1test, type = "response")
+predclass_log = ifelse(predprob >= .36, "M", "B")
+caret::confusionMatrix(as.factor(predclass_log), as.factor(b1test$diagnosis), positive = "M")
+
+```
+
+```{r}
+optim_threshold(a1,b1, b1$diagnosis)
+```
+
+
+### Use Step function to reduce variables
+
+```{r}
+m2.log = step(a1, direction = "backward")
+summary(m2.log)
+
+car::vif(m2.log)
+```
+
+
+
